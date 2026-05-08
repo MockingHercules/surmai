@@ -1,0 +1,8 @@
+export const restaurants = [
+  { name: "Mahesh Lunch Home", rating: 4.6, cuisine: "Mangalorean seafood", location: "Fort, Mumbai", image: "https://media.cntraveler.com/photos/69c8491453b0b190d5518aa4/16%3A9/w_748%2Cc_limit/A1_00005%2520%281%29.jpg", review: "Reliable surmai, crab and prawn gravies with polished service." },
+  { name: "Bombil", rating: 4.5, cuisine: "Goan thali", location: "Panjim, Goa", image: "https://imgmediagumlet.lbb.in/media/2019/05/5cf0dca7967cbb4374d87410_1559288999024.jpg", review: "Modern Goan seafood thalis with strong local character." },
+  { name: "Aaheli", rating: 4.4, cuisine: "Bengali fine dining", location: "Kolkata", image: "https://www.peerlesshotels.com/assets/images/sd/sbr_gallery/gall1.jpg", review: "Elegant mustard fish and prawn malai preparations." },
+  { name: "Grand Pavilion", rating: 4.3, cuisine: "Kerala seafood", location: "Kochi", image: "https://grandhotelkerala.com/wp-content/uploads/2025/11/Grand-38.jpg", review: "Old-school comfort for karimeen, prawns and crab curry." },
+];
+export const chef = { name: "Chef Meera Koli", focus: "Coastal Indian seafood, low-waste fish butchery, and regional masalas", quote: "The best seafood plate starts at the morning market, not in the kitchen." };
+export const testimonials = ["The market finder makes the platform feel genuinely useful.", "The seafood cards look premium and presentation-ready.", "Surmai feels like a food guide and a commerce app in one."];

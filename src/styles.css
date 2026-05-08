@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@font-face { font-family: nb; src: url("/NBInternationalProBoo.ttf"); }
+@font-face { font-family: rejoy; src: url("/Rejouice-Headline.ttf"); }
+
+@theme {
+  --font-sans: nb, Arial, sans-serif;
+  --font-display: rejoy, Georgia, serif;
+  --animate-pageFade: pageFade 420ms ease both;
+}
+
+@keyframes pageFade {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+html { scroll-behavior: smooth; }
+body { margin: 0; background: #071a1f; }
+button, a { -webkit-tap-highlight-color: transparent; }
+
+.page-shell {
+  @apply relative mx-auto max-w-7xl px-5 py-14 md:px-10 md:py-20;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(184,255,239,.13), transparent 25%),
+    radial-gradient(circle at 90% 10%, rgba(255,255,255,.09), transparent 22%);
+}
+
+.glass-card {
+  @apply rounded-[2rem] border border-white/15 bg-white/10 text-white shadow-2xl shadow-black/20 backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/15;
+}
+
+.font-display { font-family: rejoy, Georgia, serif; }
+.notes-shell {
+  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+
+.notes-grid {
+  animation: notesMarquee 34s linear infinite;
+  will-change: transform;
+}
+
+.notes-shell:hover .notes-grid,
+.notes-shell:focus-within .notes-grid {
+  animation-play-state: paused;
+}
+
+.notes-shell:hover .note-card,
+.notes-shell:focus-within .note-card {
+  opacity: .48;
+  filter: blur(1.5px) saturate(.82);
+  transform: scale(.96);
+}
+
+.notes-shell .note-card:hover,
+.notes-shell .note-card:focus {
+  opacity: 1;
+  filter: blur(0) saturate(1.08);
+  transform: translateY(-8px) scale(1.045);
+  box-shadow: 0 28px 70px rgba(4, 18, 22, .28), 0 0 42px rgba(188, 255, 241, .38);
+  border-color: rgba(210, 255, 245, .82);
+}
+
+@keyframes notesMarquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(calc(-50% - 10px), 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notes-grid { animation: none; }
+}

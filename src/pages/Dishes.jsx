@@ -1,0 +1,12 @@
+import { useMemo, useState } from "react";
+import PageHero from "../components/PageHero.jsx";
+import SearchFilter from "../components/SearchFilter.jsx";
+import { dishes, dishCategories } from "../data/dishes.js";
+
+export default function Dishes() {
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("All");
+  const [selected, setSelected] = useState(null);
+  const visible = useMemo(() => dishes.filter((dish) => (category === "All" || dish.category === category) && dish.name.toLowerCase().includes(search.toLowerCase())), [search, category]);
+  return <><PageHero eyebrow="Seafood dish gallery" title="Regional seafood dishes." copy="A cuisine-only gallery with ingredients, spice level, cooking style, origin state and recipe modals." image="https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=1800&q=85" /><main className="page-shell"><SearchFilter search={search} setSearch={setSearch} categories={dishCategories} active={category} setActive={setCategory} placeholder="Search dishes" /><div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{visible.map((dish) => <button key={dish.name} onClick={() => setSelected(dish)} className="glass-card overflow-hidden text-left"><img src={dish.image} alt={dish.name} className="h-64 w-full object-cover" /><div className="p-6"><p className="text-sm uppercase text-cyan-200">{dish.origin} / {dish.style}</p><h3 className="mt-2 text-3xl font-semibold">{dish.name}</h3><p className="mt-3 text-slate-300">Spice level: {dish.spice}</p><div className="mt-4 flex flex-wrap gap-2">{dish.ingredients.map((item) => <span className="rounded-full bg-white/10 px-3 py-2 text-sm" key={item}>{item}</span>)}</div></div></button>)}</div></main>{selected && <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/70 p-4" onClick={() => setSelected(null)}><div className="max-w-2xl rounded-[2rem] border border-white/20 bg-slate-950 p-6 text-white shadow-2xl" onClick={(e) => e.stopPropagation()}><img src={selected.image} alt={selected.name} className="h-72 w-full rounded-3xl object-cover" /><h2 className="mt-5 text-4xl font-semibold">{selected.name}</h2><p className="mt-3 text-slate-300">{selected.recipe}</p><button className="mt-6 rounded-full bg-cyan-200 px-5 py-3 text-slate-950" onClick={() => setSelected(null)}>Close recipe</button></div></div>}</>;
+}
