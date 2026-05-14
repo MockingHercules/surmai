@@ -9,8 +9,8 @@ export const markets = [
     timing: "6:00 AM - 7:00 PM",
     bestTime: "Before 8:00 AM",
     catch: "Bombil, prawns, small shellfish, daily local fish",
-    image: "https://images.unsplash.com/photo-1606851091851-e8c8c0fca5ba?auto=format&fit=crop&w=1200&q=85",
-    imageNote: "Local fish-market style reference",
+    image: "https://commons.wikimedia.org/wiki/Special:FilePath/Fish%20market%20at%20Chittaranjan%20Park%20%28943503956%29.jpg",
+    imageNote: "Real Indian fish-market reference",
     vendors: ["Morning prawn counter", "Small fish and bombil sellers"],
     mapUrl: searchMap("Navghar Fish Market Bhayandar East"),
     directionsUrl: directions("Navghar Fish Market, Navghar Shamshan Rd, Bhayandar East, Mira Bhayandar, Maharashtra"),
@@ -90,3 +90,5 @@ export const mumbaiRoute = {
   mapEmbed: "https://www.google.com/maps?q=Mumbai%20fish%20markets%20Bhayandar%20Borivali%20Malad%20Versova%20Dadar%20Sassoon%20Dock&output=embed",
   directionsUrl: `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent("Bhayandar East Mumbai")}&destination=${encodeURIComponent("Sassoon Dock Fish Market Colaba Mumbai")}&waypoints=${encodeURIComponent("Borivali West Mumbai|Sainath Municipal Fish Market Malad West|Versova Village Fish Market|Dadar Fish Market")}`,
 };
+
+

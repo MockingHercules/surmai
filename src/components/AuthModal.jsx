@@ -1,0 +1,250 @@
+import { useEffect, useMemo, useState } from "react";
+import { authFetch, useAuth } from "./AuthContext.jsx";
+
+const initialForm = {
+  fullName: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  remember: true,
+};
+
+function Spinner() {
+  return <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />;
+}
+
+function EyeIcon({ hidden }) {
+  return <span aria-hidden="true">{hidden ? "Show" : "Hide"}</span>;
+}
+
+function GoogleLogo() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+      <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" />
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06L5.84 9.9C6.71 7.31 9.14 5.38 12 5.38z" />
+    </svg>
+  );
+}
+
+function Field({ label, name, type = "text", value, onChange, valid, invalid, autoComplete, right }) {
+  const border = value ? (valid ? "border-emerald-400" : invalid ? "border-red-400" : "border-slate-300") : "border-slate-300";
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-medium text-slate-700">{label}</span>
+      <div className={`flex items-center rounded-xl border bg-white px-3 shadow-sm transition focus-within:border-blue-500 ${border}`}>
+        <input
+          name={name}
+          type={type}
+          value={value}
+          onChange={onChange}
+          autoComplete={autoComplete}
+          className="min-h-12 flex-1 bg-transparent text-slate-950 outline-none placeholder:text-slate-400"
+          placeholder={label}
+        />
+        {right}
+        {value && <span className={`ml-2 h-2.5 w-2.5 rounded-full ${valid ? "bg-emerald-500" : invalid ? "bg-red-500" : "bg-slate-300"}`} />}
+      </div>
+    </label>
+  );
+}
+
+function passwordStrength(password) {
+  let score = 0;
+  if (password.length >= 8) score += 1;
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/[0-9]/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password)) score += 1;
+  if (score <= 1) return { label: "Weak", color: "bg-red-500", width: "w-1/4" };
+  if (score <= 3) return { label: "Good", color: "bg-amber-500", width: "w-2/3" };
+  return { label: "Strong", color: "bg-emerald-500", width: "w-full" };
+}
+
+export default function AuthModal() {
+  const { modalOpen, setModalOpen, modalView, setModalView, completeAuth } = useAuth();
+  const [form, setForm] = useState(initialForm);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const strength = passwordStrength(form.password);
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
+  const isName = form.fullName.trim().length >= 2;
+  const isPassword = form.password.length >= 8;
+  const isConfirm = form.confirmPassword && form.confirmPassword === form.password;
+
+  const title = modalView === "signup" ? "Create account" : modalView === "forgot" ? "Reset password" : "Sign in";
+  const subtitle = modalView === "signup" ? "Join Surmai for saved orders and faster seafood checkout." : modalView === "forgot" ? "Enter your email and a new password. For this mock demo, the password resets immediately." : "Welcome back to your Surmai account.";
+
+  useEffect(() => {
+    if (!modalOpen) return;
+    setMessage("");
+  }, [modalOpen, modalView]);
+
+  const update = (event) => {
+    const { name, value, checked, type } = event.target;
+    setForm((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
+  };
+
+  const delay = () => new Promise((resolve) => setTimeout(resolve, 800));
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setMessage("");
+    setLoading(true);
+
+    try {
+      await delay();
+
+      if (modalView === "forgot") {
+        const data = await authFetch("/api/auth/forgot-password", {
+          method: "POST",
+          body: JSON.stringify({ email: form.email, password: form.password }),
+        });
+        setMessage(data.message);
+        return;
+      }
+
+      if (modalView === "signup" && form.password !== form.confirmPassword) {
+        setMessage("Passwords do not match.");
+        return;
+      }
+
+      const data = await authFetch(modalView === "signup" ? "/api/auth/register" : "/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
+      completeAuth({ ...data, remember: form.remember });
+      setForm(initialForm);
+    } catch (error) {
+      setMessage(error.message);
+      if (error.message.includes("No account found")) {
+        setTimeout(() => setModalView("signup"), 2000);
+      }
+      if (error.message.includes("Email already registered")) {
+        setTimeout(() => setModalView("signin"), 1200);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const googleLogin = async () => {
+    const email = window.prompt("Enter your Gmail address");
+    if (!email) return;
+    setLoading(true);
+    setMessage("");
+
+    try {
+      await delay();
+      const data = await authFetch("/api/auth/google", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
+      completeAuth({ ...data, remember: true, message: `Welcome back, ${data.user.fullName.split(" ")[0]}! 👋` });
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const canSubmit = useMemo(() => {
+    if (modalView === "forgot") return isEmail && isPassword && isConfirm;
+    if (modalView === "signin") return isEmail && form.password.length > 0;
+    return isName && isEmail && isPassword && isConfirm;
+  }, [modalView, isEmail, isName, isPassword, isConfirm, form.password.length]);
+
+  if (!modalOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/70 p-4 opacity-100 backdrop-blur-sm animate-pageFade" onMouseDown={() => setModalOpen(false)}>
+      <section className="w-full max-w-md overflow-hidden rounded-xl bg-white text-slate-950 shadow-2xl shadow-black/30 transition md:max-w-lg" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="flex items-start justify-between border-b border-slate-200 p-6">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[.14em] text-blue-600">Surmai account</p>
+            <h2 className="mt-2 text-3xl font-semibold">{title}</h2>
+            <p className="mt-2 text-sm text-slate-500">{subtitle}</p>
+          </div>
+          <button onClick={() => setModalOpen(false)} className="rounded-full border border-slate-200 px-3 py-2 text-sm transition hover:bg-slate-100">Close</button>
+        </div>
+
+        <div className="p-6">
+          {modalView !== "forgot" && (
+            <div className="mb-5 grid grid-cols-2 rounded-full bg-slate-100 p-1 text-sm font-semibold">
+              <button className={`rounded-full py-3 transition ${modalView === "signin" ? "bg-white shadow" : "text-slate-500"}`} onClick={() => setModalView("signin")}>Sign In</button>
+              <button className={`rounded-full py-3 transition ${modalView === "signup" ? "bg-white shadow" : "text-slate-500"}`} onClick={() => setModalView("signup")}>Sign Up</button>
+            </div>
+          )}
+
+          <button type="button" onClick={googleLogin} className="mb-5 flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+            <GoogleLogo /> Continue with Google
+          </button>
+
+          <form onSubmit={submit} className="grid gap-4 transition-all duration-300">
+            {modalView === "signup" && <Field label="Full Name" name="fullName" value={form.fullName} onChange={update} valid={isName} invalid={form.fullName && !isName} autoComplete="name" />}
+            <Field label="Email" name="email" type="email" value={form.email} onChange={update} valid={isEmail} invalid={form.email && !isEmail} autoComplete="email" />
+
+            {(modalView === "signin" || modalView === "signup" || modalView === "forgot") && (
+              <>
+                <Field
+                  label={modalView === "forgot" ? "New Password" : "Password"}
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={form.password}
+                  onChange={update}
+                  valid={isPassword}
+                  invalid={form.password && !isPassword}
+                  autoComplete="off"
+                  right={<button type="button" onClick={() => setShowPassword(!showPassword)} className="text-xs font-bold text-blue-600"><EyeIcon hidden={!showPassword} /></button>}
+                />
+                <div>
+                  <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className={`h-full ${strength.color} ${strength.width} transition-all`} /></div>
+                  <p className="mt-1 text-xs text-slate-500">Password strength: {strength.label}. Minimum 8 characters.</p>
+                </div>
+              </>
+            )}
+
+            {(modalView === "signup" || modalView === "forgot") && (
+              <Field
+                label={modalView === "forgot" ? "Confirm New Password" : "Confirm Password"}
+                name="confirmPassword"
+                type={showConfirm ? "text" : "password"}
+                value={form.confirmPassword}
+                onChange={update}
+                valid={isConfirm}
+                invalid={form.confirmPassword && !isConfirm}
+                autoComplete="off"
+                right={<button type="button" onClick={() => setShowConfirm(!showConfirm)} className="text-xs font-bold text-blue-600"><EyeIcon hidden={!showConfirm} /></button>}
+              />
+            )}
+
+            {modalView !== "forgot" && (
+              <label className="flex items-center gap-3 text-sm text-slate-600">
+                <input type="checkbox" name="remember" checked={form.remember} onChange={update} className="h-4 w-4 accent-blue-600" />
+                Remember me for 30 days
+              </label>
+            )}
+
+            {message && <p className={`rounded-xl p-3 text-sm ${message.includes("sent") || message.includes("successfully") ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>{message}</p>}
+
+            <button disabled={!canSubmit || loading} className="mt-1 flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#1a73e8] font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300">
+              {loading && <Spinner />}
+              {modalView === "signup" ? "Create Account" : modalView === "forgot" ? "Reset password" : "Sign In"}
+            </button>
+          </form>
+
+          <div className="mt-5 text-center text-sm text-slate-500">
+            {modalView === "signin" && <><button className="font-semibold text-blue-600" onClick={() => setModalView("forgot")}>Forgot password?</button><span className="mx-2">/</span>Don&apos;t have an account? <button className="font-semibold text-blue-600" onClick={() => setModalView("signup")}>Sign Up</button></>}
+            {modalView === "signup" && <>Already have an account? <button className="font-semibold text-blue-600" onClick={() => setModalView("signin")}>Sign In</button></>}
+            {modalView === "forgot" && <>Remembered it? <button className="font-semibold text-blue-600" onClick={() => setModalView("signin")}>Sign In</button></>}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+
