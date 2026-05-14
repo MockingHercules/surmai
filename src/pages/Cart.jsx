@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../components/AuthContext.jsx";
 import { useCart } from "../components/CartContext.jsx";
 import { GlassCard } from "../components/GlassCard.jsx";
@@ -6,11 +6,32 @@ import { GlassCard } from "../components/GlassCard.jsx";
 const formatMoney = (value) => `Rs ${value.toLocaleString("en-IN")}`;
 
 export default function CartPage() {
-  const { isAuthenticated, openAuth } = useAuth();
+  const { isAuthenticated, openAuth, setToast } = useAuth();
+  const navigate = useNavigate();
   const { items, subtotal, remove, add, removeAll, clear } = useCart();
   const delivery = items.length ? 29 : 0;
   const total = subtotal + delivery;
 
+  const handleCheckout = () => {
+    if (!items.length) return;
+
+    const itemNames = items.map(({ product }) => product.name);
+    const order = {
+      id: `ord-${Date.now()}`,
+      item: itemNames.length > 1 ? `${itemNames[0]} + ${itemNames.length - 1} more` : itemNames[0],
+      date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short" }),
+      price: total,
+      status: "PROCESSING",
+    };
+
+    // TODO: Replace this mock write with POST /api/orders when checkout becomes real.
+    const existing = JSON.parse(localStorage.getItem("surmai_recent_orders") || "[]");
+    localStorage.setItem("surmai_recent_orders", JSON.stringify([order, ...existing].slice(0, 3)));
+    window.dispatchEvent(new Event("surmai:order-placed"));
+    clear();
+    setToast("Order placed. Dashboard updated.");
+    navigate("/dashboard");
+  };
   return (
     <main className="relative isolate min-h-screen overflow-hidden bg-slate-950 px-5 pb-16 pt-32 text-white md:px-10 md:pt-36">
       <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_18%_12%,rgba(139,246,236,.18),transparent_28%),radial-gradient(circle_at_86%_10%,rgba(255,255,255,.12),transparent_24%),linear-gradient(135deg,#07111f,#0b2030_45%,#041017)]" />
@@ -108,7 +129,7 @@ export default function CartPage() {
                 </div>
 
                 <div className="group relative mt-6">
-                  <button disabled={!items.length} className="min-h-13 w-full rounded-full bg-cyan-200 px-6 py-4 font-black text-slate-950 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-300/20 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-300">
+                  <button onClick={handleCheckout} disabled={!items.length} className="min-h-13 w-full rounded-full bg-cyan-200 px-6 py-4 font-black text-slate-950 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-300/20 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-300">
                     Proceed to Checkout
                   </button>
                   {!items.length && <span className="pointer-events-none absolute -top-11 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-950 shadow-xl group-hover:block">Add items before checkout</span>}
@@ -121,3 +142,5 @@ export default function CartPage() {
     </main>
   );
 }
+
+

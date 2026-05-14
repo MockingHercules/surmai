@@ -13,7 +13,7 @@ import Markets from "./pages/Markets.jsx";
 import Dishes from "./pages/Dishes.jsx";
 import Restaurants from "./pages/Restaurants.jsx";
 import Season from "./pages/Season.jsx";
-import Dashboard, { ProtectedRoute } from "./pages/Dashboard.jsx";
+import Dashboard, { LoginRedirect, ProtectedRoute } from "./pages/Dashboard.jsx";
 import CartPage from "./pages/Cart.jsx";
 
 function Toast() {
@@ -45,6 +45,7 @@ function Shell() {
         <Route path="/dishes" element={<Dishes />} />
         <Route path="/restaurants" element={<Restaurants />} />
         <Route path="/season" element={<Season />} />
+        <Route path="/login" element={<LoginRedirect />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
@@ -60,5 +61,7 @@ function Shell() {
 export default function App() {
   return <AuthProvider><CartProvider><Shell /></CartProvider></AuthProvider>;
 }
+
+
 
 
