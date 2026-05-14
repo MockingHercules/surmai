@@ -23,8 +23,14 @@ function fullNameFromEmail(email) {
 function localSignup(form) {
   const email = normalizeEmail(form.email);
   const users = readLocalUsers();
+  const existing = users[email];
 
-  if (users[email]) {
+  // Presentation-safe behavior: if the same person signs up again with the same password,
+  // treat it as a successful sign-in instead of blocking the demo flow.
+  if (existing) {
+    if (existing.password === form.password) {
+      return { user: existing.user, token: makeLocalToken(email), message: `Welcome back, ${existing.user.fullName.split(" ")[0]}!` };
+    }
     throw new Error("Email already registered. Please sign in.");
   }
 
@@ -54,10 +60,43 @@ function localLogin(form) {
   return { user: entry.user, token: makeLocalToken(email), message: `Welcome back, ${entry.user.fullName.split(" ")[0]}!` };
 }
 
-function shouldUseLocalFallback(error) {
-  const message = error?.message || "";
-  return message.includes("Something went wrong") || message.includes("Auth server") || message.includes("Auth request failed") || message.includes("Server error");
+function localGoogleLogin(email) {
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail.endsWith("@gmail.com")) {
+    throw new Error("Please enter a valid Gmail address.");
+  }
+
+  const users = readLocalUsers();
+  let entry = users[normalizedEmail];
+
+  if (!entry) {
+    const user = {
+      id: `local-google-${Date.now()}`,
+      fullName: fullNameFromEmail(normalizedEmail),
+      email: normalizedEmail,
+    };
+    entry = { user, password: null };
+    users[normalizedEmail] = entry;
+    writeLocalUsers(users);
+  }
+
+  return { user: entry.user, token: makeLocalToken(normalizedEmail), message: `Welcome back, ${entry.user.fullName.split(" ")[0]}!` };
 }
+
+function resetLocalPassword(form) {
+  const email = normalizeEmail(form.email);
+  const users = readLocalUsers();
+  const entry = users[email];
+
+  if (!entry) {
+    throw new Error("No account found. Please sign up first.");
+  }
+
+  users[email] = { ...entry, password: form.password };
+  writeLocalUsers(users);
+  return "Password reset successfully. Please sign in with your new password.";
+}
+
 function Spinner() {
   return <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />;
 }
@@ -111,7 +150,7 @@ function passwordStrength(password) {
 }
 
 export default function AuthModal() {
-  const { modalOpen, setModalOpen, modalView, setModalView, authReason, closeAuth, completeAuth } = useAuth();
+  const { modalOpen, modalView, setModalView, authReason, closeAuth, completeAuth } = useAuth();
   const [form, setForm] = useState(initialForm);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -125,7 +164,7 @@ export default function AuthModal() {
   const isConfirm = form.confirmPassword && form.confirmPassword === form.password;
 
   const title = modalView === "signup" ? "Create account" : modalView === "forgot" ? "Reset password" : "Sign in";
-  const subtitle = modalView === "signup" ? "Join Surmai for saved orders and faster seafood checkout." : modalView === "forgot" ? "Enter your email and a new password. For this mock demo, the password resets immediately." : "Welcome back to your Surmai account.";
+  const subtitle = modalView === "signup" ? "Join Surmai for saved orders and faster seafood checkout." : modalView === "forgot" ? "Enter your email and a new password. The password resets instantly for this presentation." : "Welcome back to your Surmai account.";
 
   useEffect(() => {
     if (!modalOpen) return;
@@ -137,7 +176,7 @@ export default function AuthModal() {
     setForm((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
   };
 
-  const delay = () => new Promise((resolve) => setTimeout(resolve, 800));
+  const delay = () => new Promise((resolve) => setTimeout(resolve, 350));
 
   const submit = async (event) => {
     event.preventDefault();
@@ -148,51 +187,51 @@ export default function AuthModal() {
       await delay();
 
       if (modalView === "forgot") {
-        const data = await authFetch("/api/auth/forgot-password", {
+        if (form.password !== form.confirmPassword) {
+          setMessage("Passwords do not match.");
+          return;
+        }
+
+        const localMessage = resetLocalPassword(form);
+        setMessage(localMessage);
+        authFetch("/api/auth/forgot-password", {
           method: "POST",
           body: JSON.stringify({ email: form.email, password: form.password }),
-        });
-        setMessage(data.message);
+        }).catch(() => {});
         return;
       }
 
-      if (modalView === "signup" && form.password !== form.confirmPassword) {
-        setMessage("Passwords do not match.");
+      if (modalView === "signup") {
+        if (form.password !== form.confirmPassword) {
+          setMessage("Passwords do not match.");
+          return;
+        }
+
+        const data = localSignup(form);
+        completeAuth({ ...data, remember: form.remember });
+        setForm(initialForm);
+        authFetch("/api/auth/register", {
+          method: "POST",
+          body: JSON.stringify(form),
+        }).catch(() => {});
         return;
       }
 
-      const data = await authFetch(modalView === "signup" ? "/api/auth/register" : "/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify(form),
-      });
+      const data = localLogin(form);
       completeAuth({ ...data, remember: form.remember });
       setForm(initialForm);
+      authFetch("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify(form),
+      }).catch(() => {});
     } catch (error) {
-      try {
-        if (shouldUseLocalFallback(error) && modalView === "signup") {
-          const data = localSignup(form);
-          completeAuth({ ...data, remember: form.remember });
-          setForm(initialForm);
-          return;
-        }
-
-        if (shouldUseLocalFallback(error) && modalView === "signin") {
-          const data = localLogin(form);
-          completeAuth({ ...data, remember: form.remember });
-          setForm(initialForm);
-          return;
-        }
-
-        setMessage(error.message || "Please check the form and try again.");
-      } catch (localError) {
-        setMessage(localError.message || "Please check the form and try again.");
-      }
+      setMessage(error.message || "Please check the form and try again.");
 
       if ((error.message || "").includes("No account found")) {
-        setTimeout(() => setModalView("signup"), 2000);
+        setTimeout(() => setModalView("signup"), 1800);
       }
       if ((error.message || "").includes("Email already registered")) {
-        setTimeout(() => setModalView("signin"), 1200);
+        setTimeout(() => setModalView("signin"), 1000);
       }
     } finally {
       setLoading(false);
@@ -207,13 +246,14 @@ export default function AuthModal() {
 
     try {
       await delay();
-      const data = await authFetch("/api/auth/google", {
+      const data = localGoogleLogin(email);
+      completeAuth({ ...data, remember: true });
+      authFetch("/api/auth/google", {
         method: "POST",
         body: JSON.stringify({ email }),
-      });
-      completeAuth({ ...data, remember: true, message: `Welcome back, ${data.user.fullName.split(" ")[0]}! 👋` });
+      }).catch(() => {});
     } catch (error) {
-      setMessage(error.message);
+      setMessage(error.message || "Please enter a valid Gmail address.");
     } finally {
       setLoading(false);
     }
@@ -240,7 +280,7 @@ export default function AuthModal() {
         </div>
 
         <div className="overflow-y-auto p-5 sm:p-6">
-          {authReason && <div className="mb-5 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">{authReason === "wishlist" ? "Login to save seafood to your wishlist 🐟" : "Login to continue shopping 🐟"}</div>}
+          {authReason && <div className="mb-5 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">{authReason === "wishlist" ? "Login to save seafood to your wishlist" : "Login to continue shopping"}</div>}
           {modalView !== "forgot" && (
             <div className="mb-5 grid grid-cols-2 rounded-full bg-slate-100 p-1 text-sm font-semibold">
               <button className={`rounded-full py-3 transition ${modalView === "signin" ? "bg-white shadow" : "text-slate-500"}`} onClick={() => setModalView("signin")}>Sign In</button>
@@ -315,8 +355,3 @@ export default function AuthModal() {
     </div>
   );
 }
-
-
-
-
-
