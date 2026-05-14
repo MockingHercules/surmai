@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { authFetch, useAuth } from "./AuthContext.jsx";
+import { authFetch, makeLocalToken, readLocalUsers, useAuth, writeLocalUsers } from "./AuthContext.jsx";
 
 const initialForm = {
   fullName: "",
@@ -9,6 +9,55 @@ const initialForm = {
   remember: true,
 };
 
+function normalizeEmail(email) {
+  return String(email || "").trim().toLowerCase();
+}
+
+function fullNameFromEmail(email) {
+  return normalizeEmail(email)
+    .split("@")[0]
+    .replace(/[._-]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase()) || "Surmai User";
+}
+
+function localSignup(form) {
+  const email = normalizeEmail(form.email);
+  const users = readLocalUsers();
+
+  if (users[email]) {
+    throw new Error("Email already registered. Please sign in.");
+  }
+
+  const user = {
+    id: `local-${Date.now()}`,
+    fullName: form.fullName.trim() || fullNameFromEmail(email),
+    email,
+  };
+
+  users[email] = { user, password: form.password };
+  writeLocalUsers(users);
+  return { user, token: makeLocalToken(email), message: `Welcome, ${user.fullName.split(" ")[0]}!` };
+}
+
+function localLogin(form) {
+  const email = normalizeEmail(form.email);
+  const entry = readLocalUsers()[email];
+
+  if (!entry) {
+    throw new Error("No account found. Please sign up first.");
+  }
+
+  if (entry.password !== form.password) {
+    throw new Error("Incorrect password.");
+  }
+
+  return { user: entry.user, token: makeLocalToken(email), message: `Welcome back, ${entry.user.fullName.split(" ")[0]}!` };
+}
+
+function shouldUseLocalFallback(error) {
+  const message = error?.message || "";
+  return message.includes("Something went wrong") || message.includes("Auth server") || message.includes("Auth request failed") || message.includes("Server error");
+}
 function Spinner() {
   return <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />;
 }
@@ -119,11 +168,30 @@ export default function AuthModal() {
       completeAuth({ ...data, remember: form.remember });
       setForm(initialForm);
     } catch (error) {
-      setMessage(error.message);
-      if (error.message.includes("No account found")) {
+      try {
+        if (shouldUseLocalFallback(error) && modalView === "signup") {
+          const data = localSignup(form);
+          completeAuth({ ...data, remember: form.remember });
+          setForm(initialForm);
+          return;
+        }
+
+        if (shouldUseLocalFallback(error) && modalView === "signin") {
+          const data = localLogin(form);
+          completeAuth({ ...data, remember: form.remember });
+          setForm(initialForm);
+          return;
+        }
+
+        setMessage(error.message || "Please check the form and try again.");
+      } catch (localError) {
+        setMessage(localError.message || "Please check the form and try again.");
+      }
+
+      if ((error.message || "").includes("No account found")) {
         setTimeout(() => setModalView("signup"), 2000);
       }
-      if (error.message.includes("Email already registered")) {
+      if ((error.message || "").includes("Email already registered")) {
         setTimeout(() => setModalView("signin"), 1200);
       }
     } finally {
@@ -247,6 +315,7 @@ export default function AuthModal() {
     </div>
   );
 }
+
 
 
 

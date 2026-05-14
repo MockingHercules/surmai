@@ -125,6 +125,14 @@ app.use((error, req, res, next) => {
   return res.status(500).json({ message: "Server error. Please restart the dev server and try again." });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Surmai auth API running on http://127.0.0.1:${PORT}`);
 });
+
+// Keep a strong reference to the server so Windows/Node never exits early during demos.
+globalThis.surmaiAuthServer = server;
+
+
+// Presentation safety: keep the Node event loop alive for the local auth API.
+setInterval(() => {}, 1 << 30);
+

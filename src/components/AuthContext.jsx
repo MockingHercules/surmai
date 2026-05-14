@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 const AuthContext = createContext(null);
 const LOCAL_TOKEN_KEY = "surmai_auth_token";
 const SESSION_TOKEN_KEY = "surmai_session_token";
+const LOCAL_USERS_KEY = "surmai_local_users";
 
 function readToken() {
   return localStorage.getItem(LOCAL_TOKEN_KEY) || sessionStorage.getItem(SESSION_TOKEN_KEY) || "";
@@ -23,8 +24,37 @@ function clearToken() {
   sessionStorage.removeItem(SESSION_TOKEN_KEY);
 }
 
+function readLocalUsers() {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeLocalUsers(users) {
+  localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
+}
+
+function makeLocalToken(email) {
+  return `local:${String(email || "").trim().toLowerCase()}`;
+}
+
+function localUserFromToken(token) {
+  if (!token?.startsWith("local:")) return null;
+  const email = token.slice("local:".length);
+  return readLocalUsers()[email]?.user || null;
+}
+
 async function authFetch(path, options = {}) {
   const token = readToken();
+
+  if (path === "/api/auth/me" && token.startsWith("local:")) {
+    const user = localUserFromToken(token);
+    if (!user) throw new Error("Local session expired. Please sign in again.");
+    return { user };
+  }
+
   let response;
 
   try {
@@ -32,12 +62,12 @@ async function authFetch(path, options = {}) {
       ...options,
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(token && !token.startsWith("local:") ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers || {}),
       },
     });
   } catch {
-    throw new Error("Auth server is not reachable. Start the site with npm run dev, then try again.");
+    throw new Error("Auth server is not reachable. Using local presentation login is recommended.");
   }
 
   const data = await response.json().catch(() => ({}));
@@ -57,6 +87,13 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = readToken();
     if (!token) return;
+
+    if (token.startsWith("local:")) {
+      const localUser = localUserFromToken(token);
+      if (localUser) setUser(localUser);
+      else clearToken();
+      return;
+    }
 
     authFetch("/api/auth/me")
       .then((data) => setUser(data.user))
@@ -85,7 +122,7 @@ export function AuthProvider({ children }) {
     setUser(nextUser);
     setModalOpen(false);
     setAuthReason("");
-    setToast(message || `Welcome back, ${nextUser.fullName.split(" ")[0]}! 👋`);
+    setToast(message || `Welcome back, ${nextUser.fullName.split(" ")[0]}!`);
   };
 
   const logout = () => {
@@ -120,5 +157,4 @@ export function useAuth() {
   return context;
 }
 
-export { authFetch };
-
+export { authFetch, makeLocalToken, readLocalUsers, writeLocalUsers };

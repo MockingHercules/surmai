@@ -1,0 +1,37 @@
+[Thu May 14 23:50:11 2026] PHP 8.5.6 Development Server (http://127.0.0.1:8000) started
+[Thu May 14 23:50:14 2026] 127.0.0.1:50528 Accepted
+[Thu May 14 23:50:14 2026] 127.0.0.1:50528 [200]: GET /
+[Thu May 14 23:50:14 2026] 127.0.0.1:50528 Closing
+[Thu May 14 23:51:47 2026] 127.0.0.1:58296 Accepted
+[Thu May 14 23:51:47 2026] 127.0.0.1:58296 [200]: GET /
+[Thu May 14 23:51:47 2026] 127.0.0.1:58296 Closing
+[Thu May 14 23:51:47 2026] 127.0.0.1:58297 Accepted
+[Thu May 14 23:51:47 2026] 127.0.0.1:58297 [200]: POST /index.php?action=add
+[Thu May 14 23:51:47 2026] 127.0.0.1:58297 Closing
+[Thu May 14 23:52:34 2026] 127.0.0.1:61844 Accepted
+[Thu May 14 23:52:34 2026] 127.0.0.1:61844 [200]: GET /
+[Thu May 14 23:52:34 2026] 127.0.0.1:61844 Closing
+[Thu May 14 23:52:34 2026] 127.0.0.1:60878 Accepted
+[Thu May 14 23:52:34 2026] 127.0.0.1:60878 [200]: GET /assets/cart.css
+[Thu May 14 23:52:34 2026] 127.0.0.1:60878 Closing
+[Thu May 14 23:52:35 2026] 127.0.0.1:64454 Accepted
+[Thu May 14 23:52:35 2026] 127.0.0.1:64454 [200]: GET /assets/cart.js
+[Thu May 14 23:52:35 2026] 127.0.0.1:64454 Closing
+[Thu May 14 23:53:14 2026] 127.0.0.1:63471 Accepted
+[Thu May 14 23:53:14 2026] 127.0.0.1:63471 [200]: GET /
+[Thu May 14 23:53:14 2026] 127.0.0.1:63471 Closing
+[Thu May 14 23:53:14 2026] 127.0.0.1:57592 Accepted
+[Thu May 14 23:53:14 2026] 127.0.0.1:57592 [200]: GET /assets/cart.css
+[Thu May 14 23:53:14 2026] 127.0.0.1:57592 Closing
+[Thu May 14 23:53:15 2026] 127.0.0.1:49671 Accepted
+[Thu May 14 23:53:15 2026] 127.0.0.1:49671 [200]: GET /assets/cart.js
+[Thu May 14 23:53:15 2026] 127.0.0.1:49671 Closing
+[Thu May 14 23:53:17 2026] 127.0.0.1:54013 Accepted
+[Thu May 14 23:53:17 2026] 127.0.0.1:54013 [200]: GET /
+[Thu May 14 23:53:17 2026] 127.0.0.1:54013 Closing
+[Thu May 14 23:53:17 2026] 127.0.0.1:57181 Accepted
+[Thu May 14 23:53:17 2026] 127.0.0.1:57181 [200]: GET /assets/cart.css
+[Thu May 14 23:53:17 2026] 127.0.0.1:57181 Closing
+[Thu May 14 23:53:17 2026] 127.0.0.1:61134 Accepted
+[Thu May 14 23:53:17 2026] 127.0.0.1:61134 [200]: GET /assets/cart.js
+[Thu May 14 23:53:17 2026] 127.0.0.1:61134 Closing
