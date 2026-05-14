@@ -62,7 +62,7 @@ function passwordStrength(password) {
 }
 
 export default function AuthModal() {
-  const { modalOpen, setModalOpen, modalView, setModalView, completeAuth } = useAuth();
+  const { modalOpen, setModalOpen, modalView, setModalView, authReason, closeAuth, completeAuth } = useAuth();
   const [form, setForm] = useState(initialForm);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -160,7 +160,7 @@ export default function AuthModal() {
   if (!modalOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/70 p-4 opacity-100 backdrop-blur-sm animate-pageFade" onMouseDown={() => setModalOpen(false)}>
+    <div className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/70 p-4 opacity-100 backdrop-blur-sm animate-pageFade" onMouseDown={closeAuth}>
       <section className="w-full max-w-md overflow-hidden rounded-xl bg-white text-slate-950 shadow-2xl shadow-black/30 transition md:max-w-lg" onMouseDown={(event) => event.stopPropagation()}>
         <div className="flex items-start justify-between border-b border-slate-200 p-6">
           <div>
@@ -168,10 +168,11 @@ export default function AuthModal() {
             <h2 className="mt-2 text-3xl font-semibold">{title}</h2>
             <p className="mt-2 text-sm text-slate-500">{subtitle}</p>
           </div>
-          <button onClick={() => setModalOpen(false)} className="rounded-full border border-slate-200 px-3 py-2 text-sm transition hover:bg-slate-100">Close</button>
+          <button onClick={closeAuth} className="rounded-full border border-slate-200 px-3 py-2 text-sm transition hover:bg-slate-100">Close</button>
         </div>
 
         <div className="p-6">
+          {authReason && <div className="mb-5 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">{authReason === "wishlist" ? "Login to save seafood to your wishlist 🐟" : "Login to continue shopping 🐟"}</div>}
           {modalView !== "forgot" && (
             <div className="mb-5 grid grid-cols-2 rounded-full bg-slate-100 p-1 text-sm font-semibold">
               <button className={`rounded-full py-3 transition ${modalView === "signin" ? "bg-white shadow" : "text-slate-500"}`} onClick={() => setModalView("signin")}>Sign In</button>
@@ -246,5 +247,6 @@ export default function AuthModal() {
     </div>
   );
 }
+
 
 

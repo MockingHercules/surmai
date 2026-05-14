@@ -14,6 +14,7 @@ import Dishes from "./pages/Dishes.jsx";
 import Restaurants from "./pages/Restaurants.jsx";
 import Season from "./pages/Season.jsx";
 import Dashboard, { ProtectedRoute } from "./pages/Dashboard.jsx";
+import CartPage from "./pages/Cart.jsx";
 
 function Toast() {
   const { toast } = useAuth();
@@ -45,6 +46,7 @@ function Shell() {
         <Route path="/restaurants" element={<Restaurants />} />
         <Route path="/season" element={<Season />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/cart" element={<CartPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
@@ -56,5 +58,7 @@ function Shell() {
 }
 
 export default function App() {
-  return <CartProvider><AuthProvider><Shell /></AuthProvider></CartProvider>;
+  return <AuthProvider><CartProvider><Shell /></CartProvider></AuthProvider>;
 }
+
+

@@ -42,6 +42,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalView, setModalView] = useState("signin");
+  const [authReason, setAuthReason] = useState("");
   const [toast, setToast] = useState("");
 
   const firstName = user?.fullName?.split(" ")?.[0] || "";
@@ -61,15 +62,22 @@ export function AuthProvider({ children }) {
     return () => clearTimeout(id);
   }, [toast]);
 
-  const openAuth = (view = "signin") => {
+  const openAuth = (view = "signin", reason = "") => {
     setModalView(view);
+    setAuthReason(reason);
     setModalOpen(true);
+  };
+
+  const closeAuth = () => {
+    setModalOpen(false);
+    setAuthReason("");
   };
 
   const completeAuth = ({ user: nextUser, token, remember, message }) => {
     storeToken(token, remember);
     setUser(nextUser);
     setModalOpen(false);
+    setAuthReason("");
     setToast(message || `Welcome back, ${nextUser.fullName.split(" ")[0]}! 👋`);
   };
 
@@ -83,15 +91,18 @@ export function AuthProvider({ children }) {
     user,
     firstName,
     toast,
+    setToast,
     modalOpen,
     modalView,
+    authReason,
     setModalOpen,
     setModalView,
     openAuth,
+    closeAuth,
     completeAuth,
     logout,
     isAuthenticated: Boolean(user),
-  }), [user, firstName, toast, modalOpen, modalView]);
+  }), [user, firstName, toast, modalOpen, modalView, authReason]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

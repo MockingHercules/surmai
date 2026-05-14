@@ -17,10 +17,10 @@ function Clear-CodexGitEnv {
 }
 
 function Run-Git {
-  param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
   Clear-CodexGitEnv
-  git @Args
-  if ($LASTEXITCODE -ne 0) { throw "git $($Args -join ' ') failed" }
+  $gitArgs = $args
+  git @gitArgs
+  if ($LASTEXITCODE -ne 0) { throw "git $($gitArgs -join ' ') failed" }
 }
 
 function Current-Head {
@@ -66,3 +66,4 @@ switch ($Action) {
     Write-Host "New stable checkpoint is $(Current-Head)." -ForegroundColor Green
   }
 }
+

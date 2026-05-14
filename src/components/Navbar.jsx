@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext.jsx";
+import { useCart } from "./CartContext.jsx";
 import Logo from "./Logo.jsx";
 
 const links = [
@@ -24,11 +25,17 @@ export default function Navbar({ cartCount, onCartOpen }) {
   const [accountOpen, setAccountOpen] = useState(false);
   const location = useLocation();
   const { user, firstName, openAuth, logout } = useAuth();
+  const { badgePulse, logoutCart } = useCart();
 
   useEffect(() => {
     setOpen(false);
     setAccountOpen(false);
   }, [location.pathname]);
+
+  const handleLogout = () => {
+    logoutCart();
+    logout();
+  };
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 py-4 md:px-8">
@@ -65,14 +72,14 @@ export default function Navbar({ cartCount, onCartOpen }) {
             <div className="absolute right-0 mt-3 w-44 overflow-hidden rounded-2xl border border-white/15 bg-slate-950/95 p-2 text-white shadow-2xl backdrop-blur-xl">
               <NavLink to="/dashboard" className="block rounded-xl px-4 py-3 text-sm hover:bg-white/10">Profile</NavLink>
               <button className="block w-full rounded-xl px-4 py-3 text-left text-sm hover:bg-white/10">My Orders</button>
-              <button onClick={logout} className="block w-full rounded-xl px-4 py-3 text-left text-sm text-red-200 hover:bg-red-500/10">Logout</button>
+              <button onClick={handleLogout} className="block w-full rounded-xl px-4 py-3 text-left text-sm text-red-200 hover:bg-red-500/10">Logout</button>
             </div>
           )}
         </div>
 
         <button onClick={onCartOpen} className="relative flex items-center gap-2 rounded-full bg-cyan-200 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:shadow-xl">
           <CartIcon /> Cart
-          <span className="absolute -right-1 -top-1 grid h-6 min-w-6 place-items-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white shadow-lg shadow-red-950/30">{cartCount}</span>
+          <span className={`absolute -right-1 -top-1 grid h-6 min-w-6 place-items-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white shadow-lg shadow-red-950/30 ${badgePulse ? "animate-cartPop" : ""}`}>{cartCount}</span>
         </button>
       </nav>
     </header>
