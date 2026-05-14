@@ -36,8 +36,12 @@ function readRecentOrders() {
 }
 
 export function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { authReady, isAuthenticated } = useAuth();
   const location = useLocation();
+
+  if (!authReady) {
+    return <main className="min-h-screen bg-[#0a0f1e] px-5 pt-36 text-[#fff7ed]"><p className="text-center text-amber-300">Loading your dashboard...</p></main>;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
@@ -47,13 +51,15 @@ export function ProtectedRoute({ children }) {
 }
 
 export function LoginRedirect() {
-  const { isAuthenticated, openAuth } = useAuth();
+  const { authReady, isAuthenticated, openAuth } = useAuth();
   const location = useLocation();
   const nextPath = location.state?.from || "/dashboard";
 
   useEffect(() => {
-    if (!isAuthenticated) openAuth("signin", "dashboard");
-  }, [isAuthenticated, openAuth]);
+    if (authReady && !isAuthenticated) openAuth("signin", "dashboard");
+  }, [authReady, isAuthenticated, openAuth]);
+
+  if (!authReady) return <main className="min-h-screen bg-[#0a0f1e] px-5 pt-36 text-[#fff7ed]"><p className="text-center text-amber-300">Checking account...</p></main>;
 
   if (isAuthenticated) return <Navigate to={nextPath} replace />;
 
@@ -223,3 +229,6 @@ export default function Dashboard() {
     </main>
   );
 }
+
+
+

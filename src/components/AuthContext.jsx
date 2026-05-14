@@ -77,6 +77,7 @@ async function authFetch(path, options = {}) {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalView, setModalView] = useState("signin");
   const [authReason, setAuthReason] = useState("");
@@ -86,18 +87,23 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const token = readToken();
-    if (!token) return;
+    if (!token) {
+      setAuthReady(true);
+      return;
+    }
 
     if (token.startsWith("local:")) {
       const localUser = localUserFromToken(token);
       if (localUser) setUser(localUser);
       else clearToken();
+      setAuthReady(true);
       return;
     }
 
     authFetch("/api/auth/me")
       .then((data) => setUser(data.user))
-      .catch(() => clearToken());
+      .catch(() => clearToken())
+      .finally(() => setAuthReady(true));
   }, []);
 
   useEffect(() => {
@@ -120,6 +126,7 @@ export function AuthProvider({ children }) {
   const completeAuth = ({ user: nextUser, token, remember, message }) => {
     storeToken(token, remember);
     setUser(nextUser);
+    setAuthReady(true);
     setModalOpen(false);
     setAuthReason("");
     setToast(message || `Welcome back, ${nextUser.fullName.split(" ")[0]}!`);
@@ -128,11 +135,13 @@ export function AuthProvider({ children }) {
   const logout = () => {
     clearToken();
     setUser(null);
+    setAuthReady(true);
     setToast("Logged out of Surmai.");
   };
 
   const value = useMemo(() => ({
     user,
+    authReady,
     firstName,
     toast,
     setToast,
@@ -146,7 +155,7 @@ export function AuthProvider({ children }) {
     completeAuth,
     logout,
     isAuthenticated: Boolean(user),
-  }), [user, firstName, toast, modalOpen, modalView, authReason]);
+  }), [user, authReady, firstName, toast, modalOpen, modalView, authReason]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -158,3 +167,5 @@ export function useAuth() {
 }
 
 export { authFetch, makeLocalToken, readLocalUsers, writeLocalUsers };
+
+
