@@ -25,16 +25,23 @@ function clearToken() {
 
 async function authFetch(path, options = {}) {
   const token = readToken();
-  const response = await fetch(path, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {}),
-    },
-  });
+  let response;
+
+  try {
+    response = await fetch(path, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {}),
+      },
+    });
+  } catch {
+    throw new Error("Auth server is not reachable. Start the site with npm run dev, then try again.");
+  }
+
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.message || "Something went wrong.");
+  if (!response.ok) throw new Error(data.message || `Auth request failed (${response.status}).`);
   return data;
 }
 
@@ -114,3 +121,4 @@ export function useAuth() {
 }
 
 export { authFetch };
+

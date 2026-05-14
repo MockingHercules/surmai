@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import jwt from "jsonwebtoken";
+import { randomUUID } from "node:crypto";
 
 const app = express();
 const PORT = process.env.PORT || 5501;
@@ -14,6 +15,7 @@ app.use(express.json());
 
 const publicUser = (user) => ({ id: user.id, fullName: user.fullName, email: user.email });
 const signToken = (user, remember) => jwt.sign(publicUser(user), JWT_SECRET, { expiresIn: remember ? "30d" : "2h" });
+const normalizeEmail = (email) => String(email || "").trim().toLowerCase();
 
 function authenticate(req, res, next) {
   const header = req.headers.authorization || "";
@@ -31,10 +33,15 @@ function authenticate(req, res, next) {
 
 app.post("/api/auth/register", (req, res) => {
   const { fullName, email, password, remember } = req.body;
-  const normalizedEmail = String(email || "").trim().toLowerCase();
+  const normalizedEmail = normalizeEmail(email);
+  const cleanName = String(fullName || "").trim();
 
-  if (!fullName || !normalizedEmail || !password) {
-    return res.status(400).json({ message: "All fields are required." });
+  if (!cleanName || !normalizedEmail || !password) {
+    return res.status(400).json({ message: "Please fill your full name, email, and password." });
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    return res.status(400).json({ message: "Please enter a valid email address." });
   }
 
   if (password.length < 8) {
@@ -45,7 +52,7 @@ app.post("/api/auth/register", (req, res) => {
     return res.status(409).json({ message: "Email already registered. Please sign in." });
   }
 
-  const user = { id: crypto.randomUUID(), fullName: fullName.trim(), email: normalizedEmail, password };
+  const user = { id: randomUUID(), fullName: cleanName, email: normalizedEmail, password };
   users.push(user);
 
   return res.status(201).json({ user: publicUser(user), token: signToken(user, Boolean(remember)) });
@@ -53,11 +60,15 @@ app.post("/api/auth/register", (req, res) => {
 
 app.post("/api/auth/login", (req, res) => {
   const { email, password, remember } = req.body;
-  const normalizedEmail = String(email || "").trim().toLowerCase();
+  const normalizedEmail = normalizeEmail(email);
   const user = users.find((entry) => entry.email === normalizedEmail);
 
   if (!user) {
     return res.status(404).json({ message: "No account found. Please sign up first." });
+  }
+
+  if (user.provider === "google" && !user.password) {
+    return res.status(401).json({ message: "This account uses Google login. Continue with Google or reset your password first." });
   }
 
   if (user.password !== password) {
@@ -68,7 +79,7 @@ app.post("/api/auth/login", (req, res) => {
 });
 
 app.post("/api/auth/google", (req, res) => {
-  const normalizedEmail = String(req.body.email || "").trim().toLowerCase();
+  const normalizedEmail = normalizeEmail(req.body.email);
   if (!normalizedEmail.endsWith("@gmail.com")) {
     return res.status(400).json({ message: "Please enter a valid Gmail address." });
   }
@@ -80,7 +91,7 @@ app.post("/api/auth/google", (req, res) => {
 
   let user = users.find((entry) => entry.email === normalizedEmail);
   if (!user) {
-    user = { id: crypto.randomUUID(), fullName: derivedName, email: normalizedEmail, password: null, provider: "google" };
+    user = { id: randomUUID(), fullName: derivedName, email: normalizedEmail, password: null, provider: "google" };
     users.push(user);
   }
 
@@ -89,7 +100,7 @@ app.post("/api/auth/google", (req, res) => {
 
 app.post("/api/auth/forgot-password", (req, res) => {
   const { email, password } = req.body;
-  const normalizedEmail = String(email || "").trim().toLowerCase();
+  const normalizedEmail = normalizeEmail(email);
   const user = users.find((entry) => entry.email === normalizedEmail);
 
   if (!password || password.length < 8) {
@@ -101,6 +112,7 @@ app.post("/api/auth/forgot-password", (req, res) => {
   }
 
   user.password = password;
+  user.provider = "email";
   return res.json({ message: "Password reset successfully. Please sign in with your new password." });
 });
 
@@ -108,7 +120,11 @@ app.get("/api/auth/me", authenticate, (req, res) => {
   return res.json({ user: req.user });
 });
 
+app.use((error, req, res, next) => {
+  console.error(error);
+  return res.status(500).json({ message: "Server error. Please restart the dev server and try again." });
+});
+
 app.listen(PORT, () => {
   console.log(`Surmai auth API running on http://127.0.0.1:${PORT}`);
 });
-
