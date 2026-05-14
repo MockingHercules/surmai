@@ -86,3 +86,35 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 .animate-cartPop { animation: cartPop 520ms ease both; }
 .animate-lockFlash { animation: lockFlash 620ms ease both; }
+
+.about-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 720ms ease, transform 720ms ease;
+}
+
+.about-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes aboutCtaPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(45, 212, 191, 0); }
+  50% { box-shadow: 0 0 34px rgba(45, 212, 191, .34); }
+}
+
+.about-cta-pulse {
+  animation: aboutCtaPulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .about-cta-pulse {
+    animation: none;
+  }
+}

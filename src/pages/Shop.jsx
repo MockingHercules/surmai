@@ -11,7 +11,7 @@ export default function Shop() {
   const visible = useMemo(() => products.filter((item) => (category === "All" || item.category === category) && item.name.toLowerCase().includes(search.toLowerCase())), [search, category]);
 
   return <>
-    <PageHero eyebrow="Fresh in minutes" title="Shop premium seafood." copy="A Blinkit-style presentation demo for buying fresh fish, prawns, crab and shellfish with a cart and fake checkout." image="https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&w=1800&q=85" />
+    <PageHero eyebrow="Fresh in minutes" title="Shop premium seafood." copy="Buy fresh seafood sourced from local fishermen and trusted coastal markets. Cook better, eat cleaner, and bring healthier sea-to-kitchen meals home." image="https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&w=1800&q=85" />
     <main className="page-shell">
       <SearchFilter search={search} setSearch={setSearch} categories={shopCategories} active={category} setActive={setCategory} placeholder="Search seafood products" />
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
@@ -45,3 +45,4 @@ export default function Shop() {
     </main>
   </>;
 }
+

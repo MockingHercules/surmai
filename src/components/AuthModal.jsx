@@ -160,18 +160,18 @@ export default function AuthModal() {
   if (!modalOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/70 p-4 opacity-100 backdrop-blur-sm animate-pageFade" onMouseDown={closeAuth}>
-      <section className="w-full max-w-md overflow-hidden rounded-xl bg-white text-slate-950 shadow-2xl shadow-black/30 transition md:max-w-lg" onMouseDown={(event) => event.stopPropagation()}>
-        <div className="flex items-start justify-between border-b border-slate-200 p-6">
+    <div className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/70 p-0 opacity-100 backdrop-blur-sm animate-pageFade sm:p-4" onMouseDown={closeAuth}>
+      <section className="flex max-h-dvh min-h-dvh w-full max-w-md flex-col overflow-hidden rounded-none bg-white text-slate-950 shadow-2xl shadow-black/30 transition sm:min-h-0 sm:max-h-[92vh] sm:rounded-xl md:max-w-lg" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-200 p-5 sm:p-6">
           <div>
             <p className="text-xs font-bold uppercase tracking-[.14em] text-blue-600">Surmai account</p>
-            <h2 className="mt-2 text-3xl font-semibold">{title}</h2>
+            <h2 className="mt-2 text-2xl font-semibold sm:text-3xl">{title}</h2>
             <p className="mt-2 text-sm text-slate-500">{subtitle}</p>
           </div>
           <button onClick={closeAuth} className="rounded-full border border-slate-200 px-3 py-2 text-sm transition hover:bg-slate-100">Close</button>
         </div>
 
-        <div className="p-6">
+        <div className="overflow-y-auto p-5 sm:p-6">
           {authReason && <div className="mb-5 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">{authReason === "wishlist" ? "Login to save seafood to your wishlist 🐟" : "Login to continue shopping 🐟"}</div>}
           {modalView !== "forgot" && (
             <div className="mb-5 grid grid-cols-2 rounded-full bg-slate-100 p-1 text-sm font-semibold">
@@ -247,6 +247,7 @@ export default function AuthModal() {
     </div>
   );
 }
+
 
 
 

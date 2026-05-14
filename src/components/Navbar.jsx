@@ -38,33 +38,33 @@ export default function Navbar({ cartCount, onCartOpen }) {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 px-4 py-4 md:px-8">
-      <nav className="mx-auto flex max-w-7xl items-center gap-3 rounded-[2rem] border border-white/20 bg-slate-950/55 p-2 pl-4 shadow-2xl shadow-black/20 backdrop-blur-2xl">
-        <NavLink to="/" className="mr-auto flex items-center gap-3 rounded-full transition hover:scale-[1.02]" aria-label="Surmai home">
+    <header className="fixed inset-x-0 top-0 z-50 px-3 py-3 sm:px-4 md:px-8 md:py-4">
+      <nav className="mx-auto flex max-w-7xl items-center gap-2 rounded-[1.5rem] border border-white/35 bg-slate-100/75 p-2 pl-3 shadow-2xl shadow-black/15 backdrop-blur-2xl sm:gap-3 sm:rounded-[2rem] sm:pl-4">
+        <NavLink to="/" className="mr-auto flex min-w-0 items-center gap-2 rounded-full transition hover:scale-[1.02] sm:gap-3" aria-label="Surmai home">
           <Logo />
-          <span className="font-display text-4xl leading-none text-white">surmai</span>
+          <span className="font-display text-3xl leading-none text-slate-950 sm:text-4xl">surmai</span>
         </NavLink>
 
-        <button className="grid h-11 w-11 place-items-center rounded-full bg-slate-950 text-white md:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu">
+        <button className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-slate-950 text-white md:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu">
           <span className="text-xl">{open ? "x" : "="}</span>
         </button>
 
-        <div className={`${open ? "grid" : "hidden"} absolute left-4 right-4 top-20 gap-2 rounded-3xl border border-white/20 bg-slate-950/90 p-3 backdrop-blur-2xl md:static md:flex md:bg-transparent md:p-0`}>
+        <div className={`${open ? "grid" : "hidden"} absolute left-3 right-3 top-[4.75rem] gap-2 rounded-3xl border border-white/20 bg-slate-950/95 p-3 shadow-2xl backdrop-blur-2xl md:static md:flex md:bg-transparent md:p-0 md:shadow-none`}>
           {links.map(([to, label]) => (
-            <NavLink key={to} to={to} className={({ isActive }) => `rounded-full px-4 py-3 text-sm transition hover:-translate-y-0.5 hover:bg-white/15 ${isActive ? "bg-cyan-200 text-slate-950 shadow-lg shadow-cyan-300/20" : "text-slate-100"}`}>
+            <NavLink key={to} to={to} className={({ isActive }) => `rounded-full px-4 py-3 text-sm transition hover:-translate-y-0.5 hover:bg-white/15 ${isActive ? "bg-cyan-200 text-slate-950 shadow-lg shadow-cyan-300/20" : "text-white md:text-slate-950"}`}>
               {label}
             </NavLink>
           ))}
         </div>
 
-        <div className="relative">
+        <div className="relative shrink-0">
           {user ? (
-            <button onClick={() => setAccountOpen(!accountOpen)} className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/15">
-              <PersonIcon /> {firstName} <span className="text-xs">v</span>
+            <button onClick={() => setAccountOpen(!accountOpen)} className="flex items-center gap-2 rounded-full border border-slate-950/10 bg-white/35 px-3 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-white/15 sm:px-4" aria-label={`Open account menu for ${firstName}`}>
+              <PersonIcon /> <span className="hidden sm:inline">{firstName}</span>
             </button>
           ) : (
-            <button onClick={() => openAuth("signin")} className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/15">
-              <PersonIcon /> Login
+            <button onClick={() => openAuth("signin")} className="flex items-center gap-2 rounded-full border border-slate-950/10 bg-white/35 px-3 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-white/15 sm:px-4" aria-label="Login">
+              <PersonIcon /> <span className="hidden sm:inline">Login</span>
             </button>
           )}
 
@@ -77,11 +77,12 @@ export default function Navbar({ cartCount, onCartOpen }) {
           )}
         </div>
 
-        <button onClick={onCartOpen} className="relative flex items-center gap-2 rounded-full bg-cyan-200 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:shadow-xl">
-          <CartIcon /> Cart
-          <span className={`absolute -right-1 -top-1 grid h-6 min-w-6 place-items-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white shadow-lg shadow-red-950/30 ${badgePulse ? "animate-cartPop" : ""}`}>{cartCount}</span>
+        <button onClick={onCartOpen} className="relative flex shrink-0 items-center gap-2 rounded-full bg-cyan-200 px-3 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:shadow-xl sm:px-5" aria-label={`Open cart${cartCount ? `, ${cartCount} items` : ""}`}>
+          <CartIcon /> <span className="hidden sm:inline">Cart</span>
+          {cartCount > 0 && <span className={`absolute -right-1 -top-1 grid h-6 min-w-6 place-items-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white shadow-lg shadow-red-950/30 ${badgePulse ? "animate-cartPop" : ""}`}>{cartCount}</span>}
         </button>
       </nav>
     </header>
   );
 }
+
